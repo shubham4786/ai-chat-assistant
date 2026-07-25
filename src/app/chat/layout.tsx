@@ -7,9 +7,17 @@ export default function ChatLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Box sx={{ display: "flex", minHeight: "100dvh", overflow: "hidden" }}>
       <Sidebar />
-      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default' }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          minWidth: 0,
+          bgcolor: "background.default",
+          position: "relative",
+        }}
+      >
         {children}
       </Box>
     </Box>

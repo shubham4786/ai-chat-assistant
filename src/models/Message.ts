@@ -15,6 +15,16 @@ const MessageSchema = new Schema({
     type: String,
     required: true,
   },
+  originalContent: {
+    type: String,
+  },
+  isEdited: {
+    type: Boolean,
+    default: false,
+  },
+  editedAt: {
+    type: Date,
+  },
   image: {
     type: String,
   }

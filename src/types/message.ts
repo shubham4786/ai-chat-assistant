@@ -4,4 +4,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   image?: string; // image as base64 string
+  originalContent?: string;
+  isEdited?: boolean;
+  editedAt?: Date;
 }

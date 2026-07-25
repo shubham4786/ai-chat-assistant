@@ -9,6 +9,12 @@ import {
 	buildConversationInput,
 	type ConversationStep,
 } from "@/lib/gemini/conversation";
+import { formatGeminiError } from "@/lib/gemini/errors";
+import {
+	DEFAULT_GEMINI_MODEL,
+	isGeminiModelId,
+	type GeminiModelId,
+} from "@/lib/gemini/models";
 import {
 	extractWeatherCalls,
 	getCurrentWeather,
@@ -17,7 +23,6 @@ import {
 } from "@/lib/gemini/weather";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
-const MODEL_NAME = "gemini-3.5-flash";
 
 type InteractionState = {
 	id: string;
@@ -62,11 +67,21 @@ export async function POST(req: NextRequest) {
 			return new Response("Unauthorized", { status: 401 });
 		}
 
-		const { message, chatId, image } = await req.json();
+		const {
+			message,
+			chatId,
+			image,
+			model,
+			saveUserMessage = true,
+		} = await req.json();
 
 		if (!chatId) {
 			return new Response("chatId is required", { status: 400 });
 		}
+
+		const selectedModel: GeminiModelId = isGeminiModelId(model)
+			? model
+			: DEFAULT_GEMINI_MODEL;
 
 		await connectToDB();
 
@@ -82,21 +97,25 @@ export async function POST(req: NextRequest) {
 			createdAt: "asc",
 		});
 
-		await Message.create({
-			chat: chatId,
-			role: "user",
-			content: message,
-			image: image ? `data:image/jpeg;base64,${image}` : undefined,
-		});
+		if (saveUserMessage) {
+			await Message.create({
+				chat: chatId,
+				role: "user",
+				content: message,
+				image: image ? `data:image/jpeg;base64,${image}` : undefined,
+			});
+		}
 
 		let conversationHistory: ConversationHistoryStep[] =
-			buildConversationInput(previousMessages, message, image);
+			buildConversationInput(previousMessages, message, image, {
+				includeCurrentMessage: saveUserMessage,
+			});
 
 		let interaction: InteractionState = await ai.interactions.create({
-			model: MODEL_NAME,
+			model: selectedModel,
 			input: conversationHistory as never,
 			tools: [weatherFunctionDeclaration],
-			// store: false,
+			store: false,
 		});
 
 		let loopGuard = 0;
@@ -144,10 +163,10 @@ export async function POST(req: NextRequest) {
 			];
 
 			interaction = await ai.interactions.create({
-				model: MODEL_NAME,
+				model: selectedModel,
 				input: conversationHistory as never,
 				tools: [weatherFunctionDeclaration],
-				// store: false,
+				store: false,
 			});
 
 			loopGuard += 1;
@@ -163,19 +182,23 @@ export async function POST(req: NextRequest) {
 		});
 
 		if (previousMessages.length === 0) {
-			const titleInteraction = await ai.interactions.create({
-				model: MODEL_NAME,
-				input: `Generate a short, concise title (max 5 words) for the following conversation:
+			try {
+				const titleInteraction = await ai.interactions.create({
+					model: selectedModel,
+					input: `Generate a short, concise title (max 5 words) for the following conversation:
 User: ${message}
 AI: ${fullResponse}`,
-				// store: false,
-			});
+					store: false,
+				});
 
-			const title = (titleInteraction.output_text ?? message).replace(
-				/"/g,
-				"",
-			);
-			await Chat.findByIdAndUpdate(chatId, { title });
+				const title = (titleInteraction.output_text ?? message).replace(
+					/"/g,
+					"",
+				);
+				await Chat.findByIdAndUpdate(chatId, { title });
+			} catch (titleError) {
+				console.error("Error generating chat title:", titleError);
+			}
 		}
 
 		const stream = new ReadableStream({
@@ -192,6 +215,12 @@ AI: ${fullResponse}`,
 		});
 	} catch (error) {
 		console.error("Error in chat API:", error);
-		return new Response("Internal Server Error", { status: 500 });
+		const geminiError = formatGeminiError(error);
+		return new Response(JSON.stringify({ error: geminiError.message }), {
+			status: geminiError.status,
+			headers: {
+				"Content-Type": "application/json; charset=utf-8",
+			},
+		});
 	}
 }

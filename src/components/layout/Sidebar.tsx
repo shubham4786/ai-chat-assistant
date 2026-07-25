@@ -1,17 +1,21 @@
-'use client';
+"use client";
 
-import { useSession, signOut } from 'next-auth/react';
+import { useEffect, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import Image from 'next/image';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useParams } from 'next/navigation';
 import { Chat } from '@/types/chat';
-import { useState } from 'react';
+import { useUIStore } from "@/store/ui";
+import { useMediaQuery, useTheme } from "@mui/material";
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 import {
   Drawer,
   Box,
@@ -29,7 +33,7 @@ import {
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import ChatIcon from '@mui/icons-material/Chat';
 
-const drawerWidth = 280;
+export const drawerWidth = 280;
 
 async function createChat() {
   const response = await fetch('/api/chats', {
@@ -76,9 +80,20 @@ export default function Sidebar() {
   const router = useRouter();
   const params = useParams();
   const queryClient = useQueryClient();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSidebarOpen = useUIStore((state) => state.isSidebarOpen);
+  const toggleSidebar = useUIStore((state) => state.toggleSidebar);
+  const setSidebarOpen = useUIStore((state) => state.setSidebarOpen);
   const [searchQuery, setSearchQuery] = useState("");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openedMenuChatId, setOpenedMenuChatId] = useState<null | string>(null);
+
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [isMobile, setSidebarOpen]);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>, chatId: string) => {
     event.stopPropagation();
@@ -156,13 +171,22 @@ export default function Sidebar() {
 
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Toolbar>
+      <Toolbar sx={{ justifyContent: "space-between", gap: 1 }}>
         <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
           <ChatIcon />
         </Avatar>
-        <Typography variant="h6" noWrap component="div">
-          AI Chat
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0, flexGrow: 1 }}>
+          <Typography variant="h6" noWrap component="div">
+            AI Chat
+          </Typography>
+        </Box>
+        <IconButton
+          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+          onClick={toggleSidebar}
+          size="small"
+        >
+          {isSidebarOpen ? <CloseIcon fontSize="small" /> : <MenuIcon fontSize="small" />}
+        </IconButton>
       </Toolbar>
       <Box sx={{ p: 2 }}>
         <Button 
@@ -252,16 +276,23 @@ export default function Sidebar() {
     </Box>
   );
 
+  if (!isSidebarOpen) {
+    return null;
+  }
+
   return (
     <Drawer
-      variant="permanent"
+      variant={isMobile ? "temporary" : "permanent"}
+      open={isSidebarOpen}
+      onClose={toggleSidebar}
+      ModalProps={{ keepMounted: true }}
       sx={{
         width: drawerWidth,
         flexShrink: 0,
-        [`& .MuiDrawer-paper`]: { 
-            width: drawerWidth, 
-            boxSizing: 'border-box',
-            bgcolor: 'sidebar.main' 
+        "& .MuiDrawer-paper": {
+          width: drawerWidth,
+          boxSizing: "border-box",
+          bgcolor: "sidebar.main",
         },
       }}
     >

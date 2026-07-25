@@ -53,8 +53,15 @@ export function buildConversationInput(
 	previousMessages: ChatMessage[],
 	message: string,
 	image?: string,
+	options?: {
+		includeCurrentMessage?: boolean;
+	},
 ): ConversationStep[] {
 	const turns: ConversationStep[] = previousMessages.map(messageToTurn);
+
+	if (options?.includeCurrentMessage === false) {
+		return turns;
+	}
 
 	const currentTurn: ChatMessage = {
 		role: "user",

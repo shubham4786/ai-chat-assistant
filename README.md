@@ -97,20 +97,6 @@ src/
 - Google Cloud account for OAuth credentials
 - Google AI Studio account for Gemini API key
 
-### Installation
-
-1.  Clone the repository:
-
-    ```bash
-    git clone https://github.com/your-username/ai-chat-assistant.git
-    cd ai-chat-assistant
-    ```
-
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-
 ### Running Locally
 
 ```bash
@@ -184,4 +170,4 @@ When a new chat receives its first message:
 
 ## License
 
-This project is open source and available under the MIT License.
+This project is open source.
