@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import "highlight.js/styles/github-dark.css";
 import AuthContext from "@/features/auth/AuthContext";
@@ -8,7 +8,7 @@ import QueryProvider from "@/features/chat/QueryProvider";
 import React from "react";
 import MuiThemeRegistry from "@/features/theme/MuiThemeRegistry";
 
-const inter = Inter({ subsets: ["latin"] });
+const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
 	title: "AI Chat Assistant",
@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" className="h-full" suppressHydrationWarning>
-			<body className={`${inter.className} min-h-full flex flex-col`}>
+			<body className={`${plusJakartaSans.className} min-h-full flex flex-col`}>
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="system"
