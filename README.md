@@ -1,173 +1,204 @@
 # AI Chat Assistant
 
-An AI-powered chat application built with modern web technologies. This project showcases clean architecture and modern development practices while providing a ChatGPT-like experience.
+An AI chat application built with Next.js, MongoDB, Auth.js, and Google Gemini. The app supports image chat, chat history, automatic chat titles, and Gemini tool routing so each prompt can use the most relevant tool.
 
 ## Features
 
-- **Modern UI/UX:** ChatGPT-inspired, responsive interface with light and dark modes.
-- **Google Authentication:** Secure login with Google OAuth via Auth.js (NextAuth).
-- **AI Chat:** Real-time, streaming conversations with Google Gemini.
-- **Image Support:** Ask questions about uploaded images using Gemini Vision.
-- **Chat Management:** Create, rename, delete, and search for chats.
-- **Auto-Named Chats:** Chats are automatically named based on the first conversation.
-- **Markdown & Syntax Highlighting:** Full support for markdown rendering, including code blocks with syntax highlighting.
-- **State Management:** Client-side state with Zustand, server-side state with TanStack Query.
-- **Database:** MongoDB Atlas for storing user profiles, chats, and messages.
+- ChatGPT-style conversation UI with light and dark themes.
+- Google authentication via Auth.js (NextAuth).
+- Streaming Gemini responses from a server-side route handler.
+- Image uploads for multimodal chat.
+- MongoDB-backed chat history, message history, and user records.
+- Automatic chat naming from the first conversation.
+- Gemini tool routing that selects one best tool per prompt.
+- Support for current/public info via Google Search.
+- Support for URL context, code execution, Google Maps, weather, and file search.
+- Markdown rendering with GitHub-flavored markdown and syntax highlighting.
+
+## Current Gemini Flow
+
+The chat route now follows this flow:
+
+1. A router prompt classifies the user message.
+2. The router returns exactly one best tool.
+3. The app calls Gemini with that single tool.
+4. If the selected tool request is rate-limited, the app retries without tools so the chat still responds.
+
+Tool selection is handled on the server in [`src/app/api/chat/route.ts`](./src/app/api/chat/route.ts).
+
+### Tool Routing Rules
+
+- `google_search` is used for current or time-sensitive prompts such as:
+    - today’s date
+    - current time
+    - latest news
+    - recent events
+    - live/current facts
+- `url_context` is used when the user provides a URL and asks about that page.
+- `code_execution` is used for calculations, transforms, scripts, code, math, and structured analysis.
+- `google_maps` is used for places, directions, nearby search, restaurants, hotels, and route planning.
+- `file_search` is used for internal docs, notes, handbooks, or uploaded content when configured.
+- `weather` is used for explicit weather questions.
+- `none` is used for pure chit-chat or prompts that do not need a tool.
 
 ## Tech Stack
 
-**Frontend:**
+**Frontend**
 
-- Next.js 16 (App Router)
+- Next.js 16 App Router
 - React 19
 - TypeScript
 - Tailwind CSS 4
-- React Hook Form & Zod
-- TanStack Query (React Query 5)
-- Zustand 5
-- MUI (Material-UI)
-- lucide-react
+- MUI
+- React Hook Form
+- Zod
+- TanStack Query
+- Zustand
+- next-themes
 
-**Backend:**
+**Backend**
 
-- Next.js Route Handlers (Server Actions)
-- MongoDB Atlas & Mongoose 9
-- Google Gemini SDK (@google/genai)
+- Next.js route handlers
+- MongoDB Atlas
+- Mongoose 9
+- `@google/genai`
 
-**Authentication:**
+**Auth**
 
-- Auth.js (NextAuth) v4
+- Auth.js / NextAuth v4
 
-## Architecture
+## Project Structure
 
-```
+```text
 src/
-├── app/                    # Next.js App Router
-│   ├── api/               # API Route Handlers
-│   │   ├── auth/[...nextauth]/  # Authentication routes
-│   │   ├── chat/route.ts  # Main chat API (streaming)
-│   │   ├── chats/route.ts # Chat CRUD operations
-│   │   └── chats/[chatId]/ # Chat-specific routes
-│   ├── chat/              # Chat page components
-│   ├── login/             # Login page
-│   └── settings/          # Settings page
-├── components/            # Reusable UI components
-│   ├── chat/              # Chat-specific components
+├── app/
+│   ├── api/
+│   │   ├── auth/[...nextauth]/route.ts
+│   │   ├── chat/route.ts
+│   │   ├── chats/route.ts
+│   │   └── chats/[chatId]/
+│   ├── chat/
+│   ├── login/
+│   ├── settings/
+│   ├── globals.css
+│   └── layout.tsx
+├── components/
+│   ├── chat/
 │   │   ├── MessageInput.tsx
 │   │   └── MessageList.tsx
-│   ├── layout/            # Layout components
-│   │   └── Sidebar.tsx
-│   └── ui/                # Generic UI components
-├── features/              # Feature-specific components
-│   ├── auth/              # Authentication context
-│   ├── chat/              # Query provider
-│   └── theme/             # Theme providers
-├── lib/                   # Utility libraries
-│   ├── auth.ts            # Auth configuration
-│   └── mongodb.ts         # Database connection
-├── models/                # Mongoose models
+│   └── layout/
+│       └── Sidebar.tsx
+├── features/
+│   ├── auth/
+│   ├── chat/
+│   └── theme/
+├── lib/
+│   ├── auth.ts
+│   ├── mongodb.ts
+│   └── gemini/
+│       ├── conversation.ts
+│       ├── errors.ts
+│       ├── models.ts
+│       ├── tools.ts
+│       └── weather.ts
+├── models/
 │   ├── Chat.ts
 │   ├── Message.ts
 │   └── User.ts
-├── services/              # API service layer
-├── store/                 # Zustand stores
-├── types/                 # TypeScript type definitions
-└── utils/                 # Helper functions
+├── store/
+└── types/
 ```
 
 ## API Endpoints
 
-| Endpoint                       | Method   | Description                             |
-| ------------------------------ | -------- | --------------------------------------- |
-| `/api/auth/[...nextauth]`      | GET/POST | Google OAuth authentication             |
-| `/api/chat`                    | POST     | Send message to AI (streaming response) |
-| `/api/chats`                   | GET      | List all user chats                     |
-| `/api/chats`                   | POST     | Create new chat                         |
-| `/api/chats/[chatId]`          | PATCH    | Rename chat                             |
-| `/api/chats/[chatId]`          | DELETE   | Delete chat                             |
-| `/api/chats/[chatId]/messages` | GET      | Get chat messages                       |
-| `/api/chats/[chatId]/messages` | DELETE   | Delete a message (for regeneration)     |
+| Endpoint                       | Method   | Description                                     |
+| ------------------------------ | -------- | ----------------------------------------------- |
+| `/api/auth/[...nextauth]`      | GET/POST | Google OAuth authentication                     |
+| `/api/chat`                    | POST     | Send a prompt to Gemini and stream the response |
+| `/api/chats`                   | GET      | List chats for the current user                 |
+| `/api/chats`                   | POST     | Create a new chat                               |
+| `/api/chats/[chatId]`          | PATCH    | Rename a chat                                   |
+| `/api/chats/[chatId]`          | DELETE   | Delete a chat                                   |
+| `/api/chats/[chatId]/messages` | GET      | Fetch chat messages                             |
+| `/api/chats/[chatId]/messages` | DELETE   | Delete a message for regeneration               |
+| `/api/chats/[chatId]/messages` | PATCH    | Edit a message and resend                       |
+
+<!-- ## Environment Variables
+
+Create a `.env.local` file with the values required by your setup.
+
+```env
+GOOGLE_API_KEY=your_gemini_api_key
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_secret
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+MONGODB_URI=your_mongodb_connection_string
+
+# Optional: enable Gemini file search
+GEMINI_FILE_SEARCH_STORE_NAMES=store-1,store-2
+# or
+GEMINI_FILE_SEARCH_STORE_NAME=store-1
+``` -->
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or later)
-- MongoDB Atlas account
-- Google Cloud account for OAuth credentials
-- Google AI Studio account for Gemini API key
+- Node.js 18 or later
+- MongoDB Atlas account or another MongoDB instance
+- Google Cloud project for OAuth
+- Gemini API key
 
-### Running Locally
+### Install
+
+```bash
+npm install
+```
+
+### Run Locally
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000).
 
-### Build & Lint
+### Build and Lint
 
 ```bash
-# Build for production
 npm run build
-
-# Run linter
 npm run lint
-```
-
-## Deployment
-
-This application is optimized for deployment on [Vercel](https://vercel.com/).
-
-### Vercel Deployment
-
-1.  Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
-2.  Import the repository on Vercel
-3.  Configure environment variables in Vercel project settings:
-    - Copy all values from your `.env.local` file
-    - Ensure `NEXTAUTH_URL` is set to your Vercel domain
-4.  Deploy!
-
-### Environment Variables for Production
-
-```env
-NEXTAUTH_URL=https://your-domain.vercel.app
 ```
 
 ## Development Notes
 
-### Database Models
+### Message Storage
 
-**User:** Stores user profile information linked to Google OAuth account.
+Messages are stored in MongoDB and reloaded per chat. The UI uses optimistic updates while the server request is in flight.
 
-**Chat:** Contains chat metadata (title, user reference, timestamps).
+### Tool Routing
 
-**Message:** Stores individual messages with role (user/assistant), content, and optional image data.
+The app asks Gemini which single tool is best for the prompt, then uses that tool for the real request. This helps keep answers current without sending a large tool bundle every time.
 
-### Streaming Response
+### Weather
 
-The AI chat uses Server-Sent Events (SSE) for streaming responses. The response is streamed chunk by chunk from the Google Gemini API to provide a real-time typing experience.
+Weather requests use a custom Gemini function that looks up the location, fetches weather data from Open-Meteo, and returns the result back to Gemini.
 
-### Auto-Naming Feature
+### File Search
 
-When a new chat receives its first message:
+File search is only enabled when `GEMINI_FILE_SEARCH_STORE_NAMES` or `GEMINI_FILE_SEARCH_STORE_NAME` is configured.
 
-1. The AI responds with the answer
-2. After the response completes, Gemini generates a concise title (max 5 words)
-3. The title is saved to the chat document
-4. The sidebar automatically refreshes to show the new title
+### Auto-Naming
 
-## Future Improvements
+The first message in a chat triggers a short title-generation call, and the resulting title is saved to the chat record.
 
-- Implement server-side search for chats with text indexing
-- Add toast notifications for user feedback
-- Improve image upload with drag-and-drop and better validation
-- Add support for more OAuth providers (GitHub, Apple, etc.)
-- Implement pagination for chat history
-- Add chat export functionality (Markdown/JSON)
-- Implement rate limiting for API calls
-- Add offline support with service workers
+## Deployment
+
+This app is suitable for Vercel or any Node.js hosting platform that supports Next.js route handlers and MongoDB access.
+
+Before deploying, make sure your environment variables are configured in the target platform.
 
 ## License
 
-This project is open source.
+Open source.
