@@ -187,7 +187,7 @@ export default function ChatPage() {
 					saveUserMessage: options?.saveUserMessage ?? true,
 				}),
 			});
-			console.log("response", response);
+			// console.log("response", response);
 
 			if (!response.ok) {
 				let errorMessage = "Sorry, something went wrong.";
@@ -245,7 +245,11 @@ export default function ChatPage() {
 		}
 	};
 
-	const handleSendMessage = async (text: string, image?: string) => {
+	const handleSendMessage = async (
+		text: string,
+		image?: string,
+		model?: GeminiModelId,
+	) => {
 		if (isLoading) return;
 
 		const userMessage: Message = {
@@ -257,7 +261,7 @@ export default function ChatPage() {
 		};
 
 		setOptimisticMessages((prev) => [...prev, userMessage]);
-		await streamAIResponse(text, image, selectedModel, {
+		await streamAIResponse(text, image, model ?? selectedModel, {
 			saveUserMessage: true,
 		});
 	};
