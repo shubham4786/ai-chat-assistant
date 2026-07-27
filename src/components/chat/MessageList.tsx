@@ -32,12 +32,12 @@ interface MessageListProps {
 	) => Promise<void>;
 }
 
-function getSliderMarks() {
-	return [
-		{ value: 0, label: "Old" },
-		{ value: 1, label: "New" },
-	];
-}
+// function getSliderMarks() {
+// 	return [
+// 		{ value: 0, label: "Old" },
+// 		{ value: 1, label: "New" },
+// 	];
+// }
 
 export default function MessageList({
 	messages,
@@ -247,7 +247,7 @@ export default function MessageList({
 								)}
 							</Paper>
 
-							{hasHistory && !isEditing && (
+							{/* {hasHistory && !isEditing && (
 								<Box
 									sx={{
 										mt: 1,
@@ -291,7 +291,7 @@ export default function MessageList({
 										min={0}
 										max={1}
 										step={1}
-										marks={getSliderMarks()}
+										// marks={getSliderMarks()}
 										onChange={(_, value) =>
 											setVersionByMessageId(
 												(current) => ({
@@ -306,7 +306,7 @@ export default function MessageList({
 										}
 									/>
 								</Box>
-							)}
+							)} */}
 
 							<Box
 								className="message-actions"

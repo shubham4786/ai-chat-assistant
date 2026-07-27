@@ -7,7 +7,7 @@ export const weatherFunctionDeclaration = {
 		properties: {
 			location: {
 				type: "string",
-				description: "The city name, e.g. San Francisco",
+				description: "The city name, e.g. Pune",
 			},
 		},
 		required: ["location"],
@@ -142,7 +142,9 @@ export async function getCurrentWeather(location: string) {
 	};
 }
 
-export function extractWeatherCalls(interaction: unknown): WeatherFunctionCall[] {
+export function extractWeatherCalls(
+	interaction: unknown,
+): WeatherFunctionCall[] {
 	const maybeSteps = interaction as {
 		steps?: unknown[];
 		outputs?: unknown[];
