@@ -171,7 +171,7 @@ export default function MessageInput({
 					)}
 
 					<Stack
-						direction={{ xs: "column", md: "row" }}
+						direction="column"
 						spacing={1}
 						alignItems="stretch"
 						sx={{
@@ -220,7 +220,7 @@ export default function MessageInput({
 										},
 									}}
 									sx={{
-										flex: 1,
+										// flex: 1,
 										width: "100%",
 										"& .MuiInput-root": {
 											height: "100%",
@@ -256,7 +256,8 @@ export default function MessageInput({
 								gap: 1,
 								alignItems: "stretch",
 								width: "100%",
-								flexDirection: "row",
+								// flexDirection: "row",
+								justifyContent: "space-between",
 							}}
 						>
 							<IconButton
@@ -284,114 +285,121 @@ export default function MessageInput({
 								<AttachFileIcon />
 							</IconButton>
 
-							<FormControl
-								variant="standard"
-								sx={{
-									flex: 1,
-									minWidth: 0,
-									alignSelf: "center",
-								}}
-							>
-								<Select
-									value={model}
-									disabled={isLoading}
-									onChange={(event) =>
-										onModelChange(
-											event.target.value as GeminiModelId,
-										)
-									}
-									disableUnderline
-									renderValue={(selected) => {
-										const current =
-											GEMINI_MODELS.find(
-												(entry) => entry.id === selected,
-											) ?? GEMINI_MODELS[0];
-										return (
-											<Box sx={{ pr: 2 }}>
-												<Typography
-													variant="body2"
-													sx={{
-														fontWeight: 700,
-														lineHeight: 1.2,
-													}}
-												>
-													{current.label}
-												</Typography>
-											</Box>
-										);
-									}}
+							<Box sx={{ display: "flex", gap: 1 }}>
+								<FormControl
+									variant="standard"
 									sx={{
-										height: "100%",
-										px: 1.5,
-										py: 1.1,
+										flex: { xs: "auto", md: "none" },
+										minWidth: 0,
+										alignSelf: "center",
+									}}
+								>
+									<Select
+										value={model}
+										disabled={isLoading}
+										onChange={(event) =>
+											onModelChange(
+												event.target
+													.value as GeminiModelId,
+											)
+										}
+										disableUnderline
+										renderValue={(selected) => {
+											const current =
+												GEMINI_MODELS.find(
+													(entry) =>
+														entry.id === selected,
+												) ?? GEMINI_MODELS[0];
+											return (
+												<Box sx={{ pr: 2 }}>
+													<Typography
+														variant="body2"
+														sx={{
+															fontWeight: 700,
+															lineHeight: 1.2,
+														}}
+													>
+														{current.label}
+													</Typography>
+												</Box>
+											);
+										}}
+										sx={{
+											height: "100%",
+											px: 1.5,
+											py: 1.1,
+											borderRadius: 3,
+											border: "1px solid",
+											borderColor:
+												"rgba(148, 163, 184, 0.22)",
+											bgcolor: "rgba(255,255,255,0.9)",
+											boxShadow:
+												"0 10px 24px rgba(15, 23, 42, 0.06)",
+											"& .MuiSelect-select": {
+												display: "flex",
+												alignItems: "center",
+												justifyContent: "center",
+												minHeight: "100%",
+											},
+										}}
+									>
+										{GEMINI_MODELS.map((entry) => (
+											<MenuItem
+												key={entry.id}
+												value={entry.id}
+											>
+												<Box sx={{ py: 0.25 }}>
+													<Typography
+														variant="body2"
+														sx={{ fontWeight: 700 }}
+													>
+														{entry.label}
+													</Typography>
+													<Typography
+														variant="caption"
+														color="text.secondary"
+													>
+														{entry.description}
+													</Typography>
+												</Box>
+											</MenuItem>
+										))}
+									</Select>
+								</FormControl>
+								<IconButton
+									type="submit"
+									disabled={isLoading || !canSend}
+									sx={{
+										flexShrink: 0,
+										width: 52,
+										height: 52,
+										alignSelf: "center",
 										borderRadius: 3,
-										border: "1px solid",
-										borderColor:
-											"rgba(148, 163, 184, 0.22)",
-										bgcolor: "rgba(255,255,255,0.9)",
-										boxShadow:
-											"0 10px 24px rgba(15, 23, 42, 0.06)",
-										"& .MuiSelect-select": {
-											display: "flex",
-											alignItems: "center",
-											justifyContent: "center",
-											minHeight: "100%",
+										bgcolor: canSend
+											? "primary.main"
+											: "action.disabledBackground",
+										color: canSend
+											? "primary.contrastText"
+											: "action.disabled",
+										boxShadow: canSend
+											? "0 14px 30px rgba(59,130,246,0.28)"
+											: "none",
+										backgroundImage: canSend
+											? "linear-gradient(135deg, rgba(59,130,246,1), rgba(37,99,235,1))"
+											: "none",
+										"&:hover": {
+											bgcolor: canSend
+												? "primary.dark"
+												: "action.disabledBackground",
+										},
+										"&.Mui-disabled": {
+											color: "rgba(100,116,139,0.8)",
 										},
 									}}
 								>
-									{GEMINI_MODELS.map((entry) => (
-										<MenuItem key={entry.id} value={entry.id}>
-											<Box sx={{ py: 0.25 }}>
-												<Typography
-													variant="body2"
-													sx={{ fontWeight: 700 }}
-												>
-													{entry.label}
-												</Typography>
-												<Typography
-													variant="caption"
-													color="text.secondary"
-												>
-													{entry.description}
-												</Typography>
-											</Box>
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
-							<IconButton
-								type="submit"
-								disabled={isLoading || !canSend}
-								sx={{
-									flexShrink: 0,
-									width: 52,
-									height: 52,
-									alignSelf: "center",
-									borderRadius: 3,
-									bgcolor: canSend
-										? "primary.main"
-										: "action.disabledBackground",
-									color: canSend
-										? "primary.contrastText"
-										: "action.disabled",
-									boxShadow: canSend
-										? "0 14px 30px rgba(59,130,246,0.28)"
-										: "none",
-									backgroundImage: canSend
-										? "linear-gradient(135deg, rgba(59,130,246,1), rgba(37,99,235,1))"
-										: "none",
-									"&:hover": {
-										bgcolor: canSend
-											? "primary.dark"
-											: "action.disabledBackground",
-									},
-									"&.Mui-disabled": {
-										color: "rgba(100,116,139,0.8)",
-									},
-								}}
-							>
-								<SendIcon />
-							</IconButton>
+									<SendIcon />
+								</IconButton>
+							</Box>
 						</Box>
 					</Stack>
 				</Box>

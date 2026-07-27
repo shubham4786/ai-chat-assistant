@@ -527,9 +527,10 @@ export default function ChatPage() {
 								</Typography>
 								<Stack
 									direction="row"
-									spacing={1}
+									// spacing={1}
 									justifyContent="center"
 									flexWrap="wrap"
+									gap={1}
 								>
 									<Chip label="Weather" variant="outlined" />
 									<Chip
